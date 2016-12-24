@@ -5,11 +5,9 @@ from file import File
 import os
 
 class Course:
-
-    def __init__(self, url, course_name):
-        self.url = url
+    def __init__(self, code, course_name):
         self.course_name = course_name
-        self.course_code = self.get_course_code()
+        self.course_code = code
         self.files = []
 
     # scraps the course's page and populates its material into files instance array
@@ -31,7 +29,7 @@ class Course:
 
             # get the local target path to download the file
             target_path = self.get_target_path(link.getText())
-            self.files.append(File(target_path, download_link))
+            self.files.append(File(target_path, download_link, link.getText()))
 
 
     # download all the courses material currently present in files instance array
@@ -44,8 +42,6 @@ class Course:
     def normalize_link(self, link):
         return "http://met.guc.edu.eg" + link[2:len(link)]
 
-    def get_course_code(self):
-        return self.url.split("=")[1]
 
     # returns the local target path to download the file
     def get_target_path(self, link):

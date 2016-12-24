@@ -1,6 +1,7 @@
 from urllib.request import urlopen, urlretrieve
 from urllib.error import URLError
 from bs4 import BeautifulSoup
+from file import File
 import os
 
 class Course:
@@ -9,8 +10,10 @@ class Course:
         self.url = url
         self.course_name = course_name
         self.course_code = self.get_course_code()
+        self.files = []
 
-    def download_material(self):
+    # scraps the course's page and populates its material into files instance array
+    def populate_material(self):
         html = urlopen("http://met.guc.edu.eg/Courses/Material.aspx?crsEdId=" + self.course_code)
         bsObj = BeautifulSoup(html);
 
@@ -24,21 +27,17 @@ class Course:
 
         for link in allLinks:
             # create the absolute link
-            normalized_link = self.normalize_link(link["href"])
+            download_link = self.normalize_link(link["href"])
 
             # get the local target path to download the file
             target_path = self.get_target_path(link.getText())
+            self.files.append(File(target_path, download_link))
 
-            # make sure that the target folder exists
-            self.create_folder_if_not_exists(target_path)
 
-            try:
-                # download file
-                urlretrieve(normalized_link, target_path)
-                print("Downloaded: " + target_path)
-            except URLError:
-                print("Couldn't download: " + target_path)
-
+    # download all the courses material currently present in files instance array
+    def download_all_material(self):
+        for file in self.files:
+            file.download()
 
 
     # creates an absolute path from a relative path
@@ -51,7 +50,3 @@ class Course:
     # returns the local target path to download the file
     def get_target_path(self, link):
         return "/home/mostafa/MET/" + self.course_name + "/" + link
-
-    # creates new folder(s) in the local path
-    def create_folder_if_not_exists(self, path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
